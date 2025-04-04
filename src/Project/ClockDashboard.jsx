@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState,useRef } from 'react'
 import CityTime from './CityTime'
-import axios from 'axios'
-
+import './ClockDashboard.css'
 
 export default function ClockDashboard() {
     const [cities,setCities] = useState([])
     const [showDropdown, setShowDropdown] = useState(false)
     const [timeZones, setTimeZones] = useState([]);
-    const [selectedZone, setSelectedZone] = useState('')
-    const defaultCities = [
-        { name: "Delhi", timeZone: "Asia/Kolkata" },
-    ];
-
+    const [searchQuery, setSearchQuery] = useState('');
+    const dropdownRef = useRef(null);
+    
     useEffect(()=>{
+        const defaultCities = [
+            { name: "Delhi", timeZone: "Asia/Kolkata" },
+        ];
         const storedCities=JSON.parse(localStorage.getItem('cities'))||defaultCities;
         setCities(storedCities)
     },[]);
@@ -23,20 +23,30 @@ export default function ClockDashboard() {
         const zones = Intl.supportedValuesOf('timeZone');
         setTimeZones(zones);
       }, []);
-      const handleAddCity = () => {
-        setShowDropdown(true);
-      };
-      const handleZoneSelect = (e) => {
-        const selected = e.target.value;
+
+      const handleZoneSelect = (zone) => {
+        const selected = zone;
         if (!selected) return;
         const cityObj = { name: selected.split('/').pop().replaceAll('_', ' '), timeZone: selected };
         setCities([...cities, cityObj]);
-        setSelectedZone('');
         setShowDropdown(false);
+        setSearchQuery('');
       };
-    
+
+      useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const filteredZones = timeZones.filter(zone => zone.toLowerCase().includes(searchQuery.toLowerCase()));
+
     const deleteCity=(timeZone)=>{
-        const updatedCities= cities.filter((city)=>city.timeZone!=timeZone)
+        const updatedCities= cities.filter((city)=>city.timeZone!==timeZone)
         setCities(updatedCities)
     }
   return (
@@ -51,18 +61,24 @@ export default function ClockDashboard() {
            </div>
         ))}
         </ul>
-        <div>
-        <button onClick={handleAddCity}>Add Time Zone</button>
-        {showDropdown && (
-          <select value={selectedZone} onChange={handleZoneSelect}>
-            <option value="">-- Select Time Zone --</option>
-            {timeZones.map((zone, idx) => (
-              <option key={idx} value={zone}>
-                {zone}
-              </option>
-            ))}
-          </select>
-        )}
+        <div className='dropdown' ref={dropdownRef}>
+        <input 
+                    type="text" 
+                    placeholder="Search Time Zone..." 
+                    value={searchQuery} 
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowDropdown(true)}
+                    style={{ padding: "5px", marginBottom: "5px", width: "100%" }}
+                />
+           { showDropdown && (     
+          <ul className="dropdown-list">
+                            {filteredZones.map((zone, idx) => (
+                                <li key={idx} onClick={() => handleZoneSelect(zone)} className="dropdown-item">
+                                    {zone}
+                                </li>
+                            ))}
+                        </ul>
+                        )}
       </div>
     </div>
   );
