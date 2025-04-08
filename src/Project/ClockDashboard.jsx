@@ -1,4 +1,4 @@
-import React, { useEffect, useState,useRef } from 'react'
+import React, { useState,useRef, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import {addCity,removeCity} from '../redux/citiesSlice'
 import CityTime from './CityTime'
@@ -20,13 +20,14 @@ export default function ClockDashboard() {
         setSearchQuery("");
       };
 
-        const handleClickOutside = (event) => {
+      useEffect(()=>{  
+      const handleClickOutside = (event) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setShowDropdown(false);
-            }
+            }}
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    };
+    },[]);
 
     const filteredZones = timeZones.filter(zone => zone.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -34,7 +35,7 @@ export default function ClockDashboard() {
     <div className='world-clock'>
         <h1>ClockDashboard</h1>
         <ul className='cities'>
-        <CityTime city={{name:"Local Time", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}}/>
+        <CityTime city={{name:"Calcutta", timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone}}/>
         {cities.map((city,index)=>(
            < div key={index}>
             <CityTime city={city}/>
