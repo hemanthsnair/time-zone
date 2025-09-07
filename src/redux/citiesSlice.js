@@ -1,7 +1,7 @@
 import {createSlice} from '@reduxjs/toolkit'
 
 const initialState = {
-    cities: JSON.parse(localStorage.getItem("cities")),
+    cities: JSON.parse(localStorage.getItem("cities"))||[],
     timeZones: Intl.supportedValuesOf("timeZone"),
   };
 
